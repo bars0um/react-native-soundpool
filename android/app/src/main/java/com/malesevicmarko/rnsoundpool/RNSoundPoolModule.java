@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.util.Log;
+
+
 public class RNSoundPoolModule extends ReactContextBaseJavaModule {
 
     private SoundPool sp;
@@ -79,17 +82,22 @@ public class RNSoundPoolModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void addSound(String name, Promise promise){
+        Log.i("RSOUNDPOOL","adding " + name);
         if(!soundMap.containsKey(name)) {
+            Log.i("RSOUNDPOOL","creating Resource ID " + name);
             int resourceID = this.context.getResources().getIdentifier(
                     name,
                     "raw",
                     this.context.getPackageName()
             );
+            Log.i("RSOUNDPOOL","Done creating Resource ID ");
             if(resourceID!=0) {
+                Log.i("RSOUNDPOOL","loading sound pool ");
                 int i = sp.load(this.context, resourceID, 1);
                 promises.put(i, promise);
                 soundMap.put(name, i);
             }
+            Log.i("RSOUNDPOOL","Done adding sound");
         }
     }
 
