@@ -40,6 +40,8 @@ public class RNSoundPoolModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void createPool(int maxStreams){
+        Log.v("RSOUNDPOOL","Creating sound pool");
+
         if(sp != null) release();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -48,14 +50,18 @@ public class RNSoundPoolModule extends ReactContextBaseJavaModule {
             sp = new SoundPool(maxStreams, AudioManager.STREAM_MUSIC, 0);
         }
 
+        Log.v("RSOUNDPOOL","instantiated sound pool");
         sp.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                Log.v("RSOUNDPOOL","onLoadComplete called");
                 if(!soundsInPool.contains(sampleId) && status == 0) {
+                    Log.v("RSOUNDPOOL","sampleID not found");
                     soundsInPool.add(sampleId);
                     promises.get(sampleId).resolve(null);
                     promises.delete(sampleId);
                 }else if(status != 0){
+                    Log.v("RSOUNDPOOL","sampleID found with status not zero");
                     String key = getKeyFromValue(soundMap, sampleId);
                     soundMap.remove(key);
                     promises.get(sampleId).reject("NOT_LOADED", "LOAD_ERROR");
@@ -80,30 +86,43 @@ public class RNSoundPoolModule extends ReactContextBaseJavaModule {
         return null;
     }
 
-    @ReactMethod
-    public void addSound(String name, Promise promise){
-        Log.i("RSOUNDPOOL","adding " + name);
-        if(!soundMap.containsKey(name)) {
-            Log.i("RSOUNDPOOL","creating Resource ID " + name);
-            int resourceID = this.context.getResources().getIdentifier(
-                    name,
-                    "raw",
-                    this.context.getPackageName()
-            );
-            Log.i("RSOUNDPOOL","Done creating Resource ID ");
-            if(resourceID!=0) {
-                Log.i("RSOUNDPOOL","loading sound pool ");
-                int i = sp.load(this.context, resourceID, 1);
-                promises.put(i, promise);
-                soundMap.put(name, i);
-            }
-            Log.i("RSOUNDPOOL","Done adding sound");
-        }
-    }
+   @ReactMethod
+public void addSound(String name, Promise promise) {
+   Log.v("RSOUNDPOOL", "adding " + name);
+   if (!soundMap.containsKey(name)) {
+       Log.v("RSOUNDPOOL", "creating Resource ID " + name);
+       int resourceID = this.context.getResources().getIdentifier(
+               name,
+               "raw",
+               this.context.getPackageName()
+       );
+       Log.v("RSOUNDPOOL", "Done creating Resource ID: " + resourceID);
+       if (resourceID != 0) {
+           Log.v("RSOUNDPOOL", "loading sound pool ");
+           try {
+               int i = sp.load(this.context, resourceID, 1);
+               Log.v("RSOUNDPOOL", "Done loading sound pool with ID: " + i);
+               promises.put(i, promise);
+               soundMap.put(name, i);
+           } catch (Exception e) {
+               Log.e("RSOUNDPOOL", "Failed to load sound file: " + name, e);
+           }
+       } else {
+           Log.e("RSOUNDPOOL", "Failed to load sound file: " + name);
+       }
+       Log.v("RSOUNDPOOL", "Done adding sound");
+   }
+}
+
 
     @ReactMethod
     public void play(String name, Promise promise){
-        if(soundsInPool.contains(soundMap.get(name))) promise.resolve(sp.play(soundMap.get(name), 1, 1, 1, 0, 1.0f));
+        Log.v("RSOUNDPOOL","request to play " + name);
+        if(soundsInPool.contains(soundMap.get(name)))
+        {
+         Log.v("RSOUNDPOOL","Found in sound map, will play now");
+         promise.resolve(sp.play(soundMap.get(name), 1, 1, 1, 0, 1.0f));
+        }
         else promise.reject("NOT_IN_POOL", "-1");
     }
 
