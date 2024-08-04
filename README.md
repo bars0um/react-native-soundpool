@@ -1,3 +1,12 @@
+#Fork Intro
+
+This is a fork from [https://github.com/MalesM/react-native-soundpool](https://github.com/MalesM/react-native-soundpool).
+
+I have added some logging to better understand the behavior of the library. This is an exploratory effort after having many issues with MediaPlayer-based libraries.
+
+Noteworthy here is that if the sounds are placed in your `android/app/src/main/res/raw` and you are loading them from there, you should drop the extension (so "beep" instead of "beep.mp3") when calling the addSound method.
+
+
 # react-native-soundpool
 
 React Native module for Android for playing sound clips using Android class [SoundPool](https://developer.android.com/reference/android/media/SoundPool).
